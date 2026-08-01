@@ -1,0 +1,24 @@
+# Visual Studio / WDK build output
+.vs/
+*.user
+*.suo
+*.VC.db
+*.VC.VC.opendb
+Debug/
+Release/
+x64/
+ARM64/
+*.obj
+*.pdb
+*.ilk
+*.log
+*.tlog
+*.lastbuildstate
+*.sys
+*.cat
+*.cer
+
+# Codex working/delivery directories
+work/
+outputs/
+
