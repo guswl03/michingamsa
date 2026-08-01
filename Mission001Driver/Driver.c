@@ -5,8 +5,9 @@
 #include "../Shared/Ioctl.h"
 
 DRIVER_INITIALIZE DriverEntry;
-EVT_WDF_DRIVER_DEVICE_ADD Mission001EvtDeviceAdd;
 EVT_WDF_IO_QUEUE_IO_DEVICE_CONTROL Mission001EvtIoDeviceControl;
+
+static NTSTATUS Mission001CreateControlDevice(_In_ WDFDRIVER Driver);
 
 NTSTATUS
 DriverEntry(
@@ -15,53 +16,60 @@ DriverEntry(
 )
 {
     WDF_DRIVER_CONFIG config;
+    WDFDRIVER driver;
+    NTSTATUS status;
 
     DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_INFO_LEVEL,
         "[Mission001] DriverEntry: driver loaded.\n");
 
-    WDF_DRIVER_CONFIG_INIT(&config, Mission001EvtDeviceAdd);
-    return WdfDriverCreate(
+    WDF_DRIVER_CONFIG_INIT(&config, WDF_NO_EVENT_CALLBACK);
+    status = WdfDriverCreate(
         DriverObject,
         RegistryPath,
         WDF_NO_OBJECT_ATTRIBUTES,
         &config,
-        WDF_NO_HANDLE);
+        &driver);
+
+    if (!NT_SUCCESS(status)) {
+        return status;
+    }
+
+    return Mission001CreateControlDevice(driver);
 }
 
-NTSTATUS
-Mission001EvtDeviceAdd(
-    _In_ WDFDRIVER Driver,
-    _Inout_ PWDFDEVICE_INIT DeviceInit
-)
+static NTSTATUS
+Mission001CreateControlDevice(_In_ WDFDRIVER Driver)
 {
-    UNREFERENCED_PARAMETER(Driver);
-
     NTSTATUS status;
     WDFDEVICE device;
+    PWDFDEVICE_INIT deviceInit;
     WDF_IO_QUEUE_CONFIG queueConfig;
     DECLARE_CONST_UNICODE_STRING(deviceName, L"\\Device\\Mission001");
     DECLARE_CONST_UNICODE_STRING(symbolicLink, L"\\DosDevices\\Mission001");
     DECLARE_CONST_UNICODE_STRING(sddl, L"D:P(A;;GA;;;SY)(A;;GA;;;BA)");
 
-    // Only SYSTEM and administrators may open the exercise device.
-    status = WdfDeviceInitAssignSDDLString(DeviceInit, &sddl);
+    deviceInit = WdfControlDeviceInitAllocate(Driver, &sddl);
+    if (deviceInit == NULL) {
+        return STATUS_INSUFFICIENT_RESOURCES;
+    }
+
+    status = WdfDeviceInitAssignName(deviceInit, &deviceName);
     if (!NT_SUCCESS(status)) {
+        WdfDeviceInitFree(deviceInit);
         return status;
     }
 
-    status = WdfDeviceInitAssignName(DeviceInit, &deviceName);
-    if (!NT_SUCCESS(status)) {
-        return status;
-    }
-
-    WdfDeviceInitSetDeviceType(DeviceInit, FILE_DEVICE_UNKNOWN);
-    WdfDeviceInitSetExclusive(DeviceInit, FALSE);
+    WdfDeviceInitSetDeviceType(deviceInit, FILE_DEVICE_UNKNOWN);
+    WdfDeviceInitSetExclusive(deviceInit, FALSE);
 
     status = WdfDeviceCreate(
-        &DeviceInit,
+        &deviceInit,
         WDF_NO_OBJECT_ATTRIBUTES,
         &device);
     if (!NT_SUCCESS(status)) {
+        if (deviceInit != NULL) {
+            WdfDeviceInitFree(deviceInit);
+        }
         return status;
     }
 
@@ -82,6 +90,7 @@ Mission001EvtDeviceAdd(
         WDF_NO_HANDLE);
 
     if (NT_SUCCESS(status)) {
+        WdfControlFinishInitializing(device);
         DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_INFO_LEVEL,
             "[Mission001] Device ready: \\\\.\\Mission001\n");
     }
