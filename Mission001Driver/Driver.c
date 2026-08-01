@@ -8,9 +8,6 @@ DRIVER_INITIALIZE DriverEntry;
 EVT_WDF_DRIVER_DEVICE_ADD Mission001EvtDeviceAdd;
 EVT_WDF_IO_QUEUE_IO_DEVICE_CONTROL Mission001EvtIoDeviceControl;
 
-static const WCHAR g_DeviceName[] = L"\\Device\\Mission001";
-static const WCHAR g_SymbolicLink[] = L"\\DosDevices\\Mission001";
-
 NTSTATUS
 DriverEntry(
     _In_ PDRIVER_OBJECT DriverObject,
@@ -42,8 +39,8 @@ Mission001EvtDeviceAdd(
     NTSTATUS status;
     WDFDEVICE device;
     WDF_IO_QUEUE_CONFIG queueConfig;
-    DECLARE_CONST_UNICODE_STRING(deviceName, g_DeviceName);
-    DECLARE_CONST_UNICODE_STRING(symbolicLink, g_SymbolicLink);
+    DECLARE_CONST_UNICODE_STRING(deviceName, L"\\Device\\Mission001");
+    DECLARE_CONST_UNICODE_STRING(symbolicLink, L"\\DosDevices\\Mission001");
     DECLARE_CONST_UNICODE_STRING(sddl, L"D:P(A;;GA;;;SY)(A;;GA;;;BA)");
 
     // Only SYSTEM and administrators may open the exercise device.
@@ -129,4 +126,3 @@ Mission001EvtIoDeviceControl(
 
     WdfRequestComplete(Request, status);
 }
-

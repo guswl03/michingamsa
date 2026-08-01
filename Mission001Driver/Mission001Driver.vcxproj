@@ -8,7 +8,7 @@
     <ProjectGuid>{B12490E5-57B3-43E0-A717-1F32EEFE1D01}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Mission001Driver</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.28000.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -21,13 +21,9 @@
   <PropertyGroup><TargetName>Mission001Driver</TargetName></PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile><WarningLevel>Level4</WarningLevel><TreatWarningAsError>false</TreatWarningAsError></ClCompile>
-    <Link><AdditionalDependencies>WdfDriverEntry.lib;%(AdditionalDependencies)</AdditionalDependencies></Link>
     <DriverSign><FileDigestAlgorithm>sha256</FileDigestAlgorithm></DriverSign>
-    <Inf><TimeStamp>0.1</TimeStamp></Inf>
   </ItemDefinitionGroup>
   <ItemGroup><ClCompile Include="Driver.c" /></ItemGroup>
-  <ItemGroup><Inf Include="Mission001Driver.inf" /></ItemGroup>
   <ItemGroup><ClInclude Include="..\Shared\Ioctl.h" /></ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>
-
